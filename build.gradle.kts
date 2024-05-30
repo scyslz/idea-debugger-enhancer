@@ -1,11 +1,11 @@
-@file:Suppress("ConvertLambdaToReference")
-
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+fun properties(key: String) = providers.gradleProperty(key)
+
 plugins {
-  java
-  id("org.jetbrains.intellij") version "0.7.2"
-  kotlin("jvm") version "1.4.30"
+  id("java")
+  id("org.jetbrains.intellij") version "1.12.0"
+  kotlin("jvm") version "1.9.24"
 }
 
 group = "com.github.lppedd"
@@ -13,34 +13,37 @@ version = "0.1"
 
 repositories {
   mavenCentral()
+  // todo：自行修改成本地仓库地址
+  mavenLocal {
+    url = uri("C:/Users/Barrettl/.m2/repository")
+  }
 }
-
 
 dependencies {
+
   compileOnly(kotlin("stdlib"))
-  testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
+// Configure Gradle IntelliJ Plugin - read more: https://github.com/JetBrains/gradle-intellij-plugin
 intellij {
-  version = "IU-192.5728.98"
-  downloadSources = true
-  setPlugins("java")
-}
+  version.set("2024.1")
+//  type.set("IU") // Target IDE Platform
+    type.set("IC") // Target IDE Platform
 
-configure<JavaPluginConvention> {
-  sourceCompatibility = JavaVersion.VERSION_1_8
-  targetCompatibility = JavaVersion.VERSION_1_8
+  plugins.set(listOf("com.intellij.java"))
 }
 
 tasks {
-  test {
-    useJUnitPlatform()
+  // Set the JVM compatibility versions
+  withType<JavaCompile> {
+    sourceCompatibility = "17"
+    targetCompatibility = "17"
+    options.encoding = "UTF-8"
   }
 
   val kotlinSettings: KotlinCompile.() -> Unit = {
-    kotlinOptions.apiVersion = "1.3"
-    kotlinOptions.jvmTarget = "1.8"
+//    kotlinOptions.apiVersion = "1.3"
+    kotlinOptions.jvmTarget = "17"
     kotlinOptions.freeCompilerArgs += listOf(
       "-Xno-call-assertions",
       "-Xno-receiver-assertions",
@@ -53,9 +56,17 @@ tasks {
   compileTestKotlin(kotlinSettings)
 
   patchPluginXml {
-    version(project.version)
-    sinceBuild("192.5728")
-    untilBuild(null)
-    pluginDescription(File("plugin-description.html").readText(Charsets.UTF_8))
+    sinceBuild.set(properties("pluginSinceBuild"))
+    untilBuild.set(properties("pluginUntilBuild"))
   }
+
+//    signPlugin {
+//        certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
+//        privateKey.set(System.getenv("PRIVATE_KEY"))
+//        password.set(System.getenv("PRIVATE_KEY_PASSWORD"))
+//    }
+//
+//    publishPlugin {
+//        token.set(System.getenv("PUBLISH_TOKEN"))
+//    }
 }

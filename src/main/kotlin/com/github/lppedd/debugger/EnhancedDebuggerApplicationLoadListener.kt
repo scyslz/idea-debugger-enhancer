@@ -7,6 +7,7 @@ import com.intellij.openapi.application.Application
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
+import com.intellij.openapi.startup.StartupActivity
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.XDebuggerManagerListener
@@ -14,13 +15,14 @@ import com.intellij.xdebugger.breakpoints.XBreakpointHandler
 import com.intellij.xdebugger.breakpoints.XBreakpointType
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import java.nio.file.Path
 
 /**
  * @author Edoardo Luppi
  */
 @Suppress("UnstableApiUsage")
 internal class EnhancedDebuggerApplicationLoadListener : ApplicationLoadListener {
-  override fun beforeApplicationLoaded(application: Application, configPath: String) {
+  override suspend fun beforeApplicationLoaded(application: Application, configPath: Path) {
     @Suppress("deprecation")
     XBreakpointType.EXTENSION_POINT_NAME.getPoint(null).unregisterExtension(JavaLineBreakpointType::class.java)
     application.messageBus.connect(application).subscribe(ProjectManager.TOPIC, MyProjectManagerListener())
@@ -46,7 +48,6 @@ internal class EnhancedDebuggerApplicationLoadListener : ApplicationLoadListener
         it.isAccessible = true
         it.get(debugProcess) as Array<XBreakpointHandler<*>>
       }
-
       val newBreakpointHandlers = breakpointHandlers.filter {
         it.breakpointTypeClass != JavaLineBreakpointType::class.java
       }
@@ -54,10 +55,16 @@ internal class EnhancedDebuggerApplicationLoadListener : ApplicationLoadListener
       field.set(debugProcess, newBreakpointHandlers.toTypedArray())
     }
 
+
     private fun Field.removeFinal() {
+      if(!Modifier.isFinal(modifiers)) {
+        return
+      }
+      // wait to remove
       val modifiers = Field::class.java.getDeclaredField("modifiers")
       modifiers.isAccessible = true
       modifiers.setInt(this, this.modifiers and Modifier.FINAL.inv())
     }
+
   }
 }
