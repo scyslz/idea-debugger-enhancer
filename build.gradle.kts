@@ -58,6 +58,7 @@ tasks {
   patchPluginXml {
     sinceBuild.set(properties("pluginSinceBuild"))
     untilBuild.set(properties("pluginUntilBuild"))
+    pluginDescription.set(File("plugin-description.html").readText(Charsets.UTF_8))
   }
 
 //    signPlugin {

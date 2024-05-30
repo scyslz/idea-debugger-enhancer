@@ -1,6 +1,6 @@
 <!--suppress PluginXmlValidity, PluginXmlDynamicPlugin -->
 <idea-plugin>
-  <id>com.github.lppedd.idea-debugger-enhancer</id>
+  <id>com.github.scyslz.idea-debugger-enhancer</id>
   <name>Debugger Enhancer</name>
   <vendor
       email="lp.edoardo@gmail.com"
@@ -8,7 +8,6 @@
   >
     Edoardo Luppi
   </vendor>
-
   <depends>com.intellij.modules.platform</depends>
   <depends>com.intellij.modules.java</depends>
 
